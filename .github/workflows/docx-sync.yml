@@ -1,4 +1,4 @@
-name: Convert DOCX to Markdown
+name: Normalize DOCX to Markdown
 
 on:
   push:
@@ -9,38 +9,43 @@ permissions:
   contents: write
 
 jobs:
-  convert:
+  normalize:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Pandoc
-        run: sudo apt-get update && sudo apt-get install -y pandoc
+      - name: Install Pandoc and file
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc file
 
-      - name: Convert DOCX to Markdown
+      - name: Convert binary DOCX → Markdown (overwrite with .docx extension)
         run: |
           for file in *.docx; do
-            [ -e "$file" ] || continue  # skip if no matches
-            pandoc "$file" -o "${file%.docx}.md" --extract-media=media
+            [ -e "$file" ] || continue
+
+            # Detect if it's a real DOCX (binary/zip)
+            if file "$file" | grep -q "Microsoft Word"; then
+              echo "Converting $file → normalized Markdown (keeping .docx extension)..."
+              pandoc "$file" -t markdown -o "$file" --extract-media="${file%.docx}.media"
+            else
+              echo "Skipping $file (already normalized Markdown)"
+            fi
           done
 
-      - name: Commit Markdown and images
+      - name: Commit normalized files
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Add Markdown files
-          git add *.md || true
+          git add *.docx */*.media/* || true
 
-          # Add images if they exist
-          if [ -d "media" ]; then
-            git add media/
-          fi
-
-          # Commit only if there are changes
           if ! git diff --cached --quiet; then
-            git commit -m "Auto-convert DOCX to Markdown"
+            git commit -m "Normalize DOCX to Markdown (keeping .docx name)"
             git push origin HEAD:${GITHUB_REF#refs/heads/}
+          else
+            echo "No changes to commit."
           fi
+
