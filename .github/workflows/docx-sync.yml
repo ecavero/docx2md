@@ -42,5 +42,5 @@ jobs:
           # Commit only if there are changes
           if ! git diff --cached --quiet; then
             git commit -m "Auto-convert DOCX to Markdown"
-            git push
+            git push origin HEAD:${GITHUB_REF#refs/heads/}
           fi
