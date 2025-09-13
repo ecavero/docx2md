@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -e
 
-echo "[*] Setting up Git filters for docx ↔ md conversion..."
+# Figure out where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Make sure scripts are executable
-chmod +x ./scripts/docx-clean.sh ./scripts/docx-smudge.sh
+# Root of the repository (one level up from scripts/)
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Configure Git filters locally (does not affect global config)
-git config filter.docx.clean  './scripts/docx-clean.sh'
-git config filter.docx.smudge './scripts/docx-smudge.sh'
+# Define filters relative to repo root
+CLEAN="$SCRIPT_DIR/docx-clean.sh"
+SMUDGE="$SCRIPT_DIR/docx-smudge.sh"
+
+# Configure git filters
+git config filter.docx.clean  "$CLEAN"
+git config filter.docx.smudge "$SMUDGE"
 git config filter.docx.required true
 
-# Refresh working tree so smudge runs
-git checkout -- .
-
-echo "[✓] Setup complete. Your .docx files will round-trip via markdown in the repo."
+echo "Git filters configured:"
+echo "  clean  -> $CLEAN"
+echo "  smudge -> $SMUDGE"

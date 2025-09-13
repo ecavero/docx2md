@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INPUT="$1"
-OUTPUT="$2"
-TMPDIR=$(mktemp -d)
+# Git provides the file contents via stdin
+tmp_in=$(mktemp --suffix=.docx)
+cat > "$tmp_in"
 
-# Extract DOCX into tmpdir
-unzip -q "$INPUT" -d "$TMPDIR"
+# Convert DOCX → Markdown, extracting media
+# pandoc will write Markdown to stdout (back to Git filter)
+pandoc "$tmp_in" -t markdown --extract-media=media
 
-# Convert DOCX → Markdown (with images)
-pandoc "$INPUT" -o "$OUTPUT" --extract-media=media
-
-# Stage extracted images (so they are committed too)
+# Stage images if extracted
 if [ -d "media" ]; then
-  git add media/*
+  git add media/* || true
 fi
+
+# Clean up
+rm -f "$tmp_in"
