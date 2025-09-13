@@ -17,8 +17,8 @@ jobs:
       - name: Convert DOCX to Markdown + Extract Images
         run: |
           for f in $(find . -name "*.docx"); do
-            mdfile='${"f%".docx}.md'
-            pandoc '"$f"' -o "$mdfile" --extract-media=media
+            mdfile=$"{f%.docx}.md"
+            pandoc "$f" -o "$mdfile" --extract-media=media
           done
 
       - name: Commit generated Markdown + images
