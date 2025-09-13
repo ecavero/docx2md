@@ -4,11 +4,11 @@ set -euo pipefail
 echo "[*] Setting up Git filters for docx ↔ md conversion..."
 
 # Make sure scripts are executable
-chmod +x docx-clean.sh docx-smudge.sh
+chmod +x ./scripts/docx-clean.sh ./scripts/docx-smudge.sh
 
 # Configure Git filters locally (does not affect global config)
-git config filter.docx.clean  './docx-clean.sh'
-git config filter.docx.smudge './docx-smudge.sh'
+git config filter.docx.clean  './scripts/docx-clean.sh'
+git config filter.docx.smudge './scripts/docx-smudge.sh'
 git config filter.docx.required true
 
 # Refresh working tree so smudge runs
